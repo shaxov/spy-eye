@@ -1,2 +1,2 @@
 # spy-eye
-Face on image processing application
+Face processing application
