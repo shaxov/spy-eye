@@ -1,5 +1,7 @@
 import abc
+import cv2
 import utils
+import numpy as np
 
 
 class AbstractValidator:
@@ -83,6 +85,59 @@ class SameDetectionValidator(AbstractValidator):
         return f"<SameDetectionsValidator(max_iou={self._max_iou})>"
 
 
+class FFTBlurValidator(AbstractValidator):
+
+    def __init__(self, kernel_size, threshold):
+        super().__init__()
+        self._kernel_size = kernel_size
+        self._threshold = threshold
+
+    def _is_blurred(self, image):
+        size = self._kernel_size
+        (h, w) = image.shape
+        (cX, cY) = (int(w / 2.0), int(h / 2.0))
+        fft = np.fft.fft2(image)
+        fftShift = np.fft.fftshift(fft)
+        fftShift[cY - size:cY + size, cX - size:cX + size] = 0
+        fftShift = np.fft.ifftshift(fftShift)
+        recon = np.fft.ifft2(fftShift)
+        magnitude = 20 * np.log(np.abs(recon))
+        mean = np.mean(magnitude)
+        return mean <= self._threshold
+
+    def __call__(self, image, boxes):
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return [box for box in boxes if not self._is_blurred(utils.crop(gray, *box))]
+
+    def __repr__(self):
+        return f"<FFTBlurValidator(kernel_size={self._kernel_size}, threshold={self._threshold})>"
+
+    @property
+    def name(self):
+        return "fft_blur_validator"
+
+
+class LaplaceBlurValidator(AbstractValidator):
+
+    def __init__(self, threshold):
+        super().__init__()
+        self._threshold = threshold
+
+    def _is_blurred(self, image):
+        return cv2.Laplacian(image/255, cv2.CV_64F).var() <= self._threshold
+
+    def __call__(self, image, boxes):
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return [box for box in boxes if not self._is_blurred(utils.crop(gray, *box))]
+
+    def __repr__(self):
+        return f"<LaplaceBlurValidator(threshold={self._threshold})>"
+
+    @property
+    def name(self):
+        return "blur_validator"
+
+
 def get(name, params=None):
     if name == 'fake_validator':
         return FakeValidator()
@@ -90,6 +145,10 @@ def get(name, params=None):
         return MinBoxSizeValidator(**params)
     elif name == 'same_detection_validator':
         return SameDetectionValidator(**params)
+    elif name == 'fft_blur_validator':
+        return FFTBlurValidator(**params)
+    elif name == 'laplace_blur_validator':
+        return LaplaceBlurValidator(**params)
     else:
         raise ValueError(f"Face validator with name '{name}' is not found.")
 

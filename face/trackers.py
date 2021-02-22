@@ -90,3 +90,11 @@ def apply(trackers, image, face_boxes):
 
 def drop_wasted(trackers):
     return [tracker for tracker in trackers if not tracker.wasted]
+
+
+def update_face_ids(trackers, old_face_ids, new_face_ids):
+    for tracker in trackers:
+        for old_face_id, new_face_id in zip(old_face_ids, new_face_ids):
+            if tracker.face_id == old_face_id:
+                tracker.face_id = new_face_id
+                break

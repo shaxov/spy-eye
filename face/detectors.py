@@ -36,6 +36,7 @@ class CascadeDetector(AbstractDetector):
         self._min_neighbour = min_neighbour
 
     def __call__(self, frame):
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         boxes = self._face_cascade.detectMultiScale(
             frame, self._scale_factor, self._min_neighbour)
         return [tuple(box) for box in boxes]
@@ -56,6 +57,7 @@ class HOGDetector(AbstractDetector):
         self._detector = dlib.get_frontal_face_detector()
 
     def __call__(self, frame):
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces, scores, idx = self._detector.run(frame, 1, -1)
         return [
             (rect.left(),
