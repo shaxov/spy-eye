@@ -1,0 +1,31 @@
+source: "Face detection.mp4"
+source_scale: 0.8
+
+face_detector:
+#  name: "hog_detector"
+#  params:
+#    threshold: 0.5
+  name: cascade_detector
+  params:
+    path_to_xml: face/files/haarcascade_frontalface_default.xml
+    scale_factor: 1.1
+    min_neighbour: 18
+
+face_tracker:
+  name: mil_tracker
+  params:
+    trace_len: 10
+
+face_validators:
+  -
+    name: min_box_size_validator
+    params:
+      min_width: 40
+      min_height: 40
+  -
+    name: same_detection_validator
+    params:
+      max_iou: 0.2
+
+frame_filters:
+  - name: gray_scale_filter
