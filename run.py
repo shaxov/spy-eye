@@ -7,6 +7,7 @@ import typedef
 import utils
 import numpy as np
 import copy
+import pickle
 
 
 def main(config):
@@ -21,6 +22,14 @@ def main(config):
     face_recognizer = face.recognizers.get(face_encoder, **config['face_recognizer'])
     storage = db.initialize(**config['database'])
     face_trackers = []
+
+    try:
+        with open('storage.pkl', 'rb') as db_file:
+            storage = pickle.load(db_file)
+            print("Database was loaded from file.")
+            print(f"Number of persons in DB: {len(storage.get_face_ids())}")
+    except:
+        print("No databese to load.")
 
     while True:
         read_ok, image = capturer.read()
@@ -69,7 +78,7 @@ def main(config):
                     tracked_face_id = face_id
                     if not recognized_ok:
                         encoded_mean_face = face_encoder(mean_face)
-                        face_id = utils.generate_face_id()
+                        face_id = storage.generate_face_id()
                         storage.add(face_id, encoded_mean_face)
                     else:
                         face_id = rec_face_id
@@ -85,6 +94,8 @@ def main(config):
             capturer.release()
             break
     cv2.destroyAllWindows()
+    with open('storage.pkl', 'wb') as db_file:
+        pickle.dump(storage, db_file)
 
 
 if __name__ == '__main__':

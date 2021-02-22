@@ -1,4 +1,5 @@
 import abc
+import cv2
 import dlib
 import utils
 import numpy as np
@@ -10,11 +11,18 @@ class AbstractEncoder:
     def __call__(self, face_image):
         """ Encode face image to some vector/matrix representation. """
 
+    @abc.abstractmethod
+    def __repr__(self):
+        pass
+
 
 class FakeEncoder(AbstractEncoder):
 
     def __call__(self, face_image):
         return 0.
+
+    def __repr__(self):
+        return "<FakeEncoder()>"
 
 
 class DlibEncoder(AbstractEncoder):
@@ -27,26 +35,20 @@ class DlibEncoder(AbstractEncoder):
         shape = self._sp(face_image, dlib.rectangle(0, 0, *face_image.shape[:-1]))
         return np.array(self._face_encoder.compute_face_descriptor(face_image, shape))
 
-# class SVDEncoder(AbstractEncoder):
-#
-#     def encode_face(self, face_image):
-#         return utils.svd(face_image)
-#
-#     def encode_face_buffer(self, face_buffer):
-#         mean_face = np.mean(face_buffer, axis=0)
-#         uv_mats = utils.svd(mean_face)
-#         embeddings = [
-#             utils.orthogonal_projections(face_image, **uv_mats)
-#             for face_image in face_buffer
-#         ]
-#         return {
-#             "uv_mats": uv_mats,
-#             "dist_params": {
-#                 "mu": np.mean(embeddings, axis=0),
-#                 "sigma": np.std(embeddings, axis=0),
-#                 "size": len(embeddings),
-#             }
-#         }
+    def __repr__(self):
+        return "<DlibEncoder()>"
+
+
+class DlibSVDEncoder(DlibEncoder):
+
+    def __call__(self, face_image, svd=True):
+        out = super().__call__(face_image)
+        if svd:
+            out = (out, utils.svd(cv2.cvtColor(face_image, cv2.COLOR_BGR2GRAY)))
+        return out
+
+    def __repr__(self):
+        return "<DlibSVDEncoder()>"
 
 
 def get(name, params):
@@ -54,5 +56,7 @@ def get(name, params):
         return FakeEncoder()
     elif name == "dlib_encoder":
         return DlibEncoder(**params)
+    elif name == "dlib_svd_encoder":
+        return DlibSVDEncoder(**params)
     else:
         raise ValueError(f"Encoder with name '{name}' is not found.")

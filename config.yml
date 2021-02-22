@@ -1,6 +1,7 @@
-source: "Face detection.mp4"
-source_scale: 0.8
-face_buffer_size: 15
+#source: "Face detection.mp4"
+source: "/home/maksym/Downloads/P1E_S1/P1E_S1_C2_FILLED/%08d.jpg"
+source_scale: 1
+face_buffer_size: 20
 face_shape: [60, 60]
 
 database:
@@ -15,7 +16,7 @@ face_encoder:
 face_recognizer:
   name: dlib_recognizer
   params:
-    threshold: 0.35
+    threshold: 0.6
 
 face_detector:
 #  name: "hog_detector"
@@ -24,8 +25,8 @@ face_detector:
   name: cascade_detector
   params:
     path_to_xml: face/files/haarcascade_frontalface_default.xml
-    scale_factor: 1.1
-    min_neighbour: 18
+    scale_factor: 1.2
+    min_neighbour: 21
 
 face_tracker:
   name: mil_tracker
@@ -36,17 +37,17 @@ face_validators:
   -
     name: min_box_size_validator
     params:
-      min_width: 40
-      min_height: 40
+      min_width: 50
+      min_height: 50
   -
     name: same_detection_validator
     params:
       max_iou: 0.2
-  -
-    name: fft_blur_validator
-    params:
-      kernel_size: 30
-      threshold: 13
+#  -
+#    name: fft_blur_validator
+#    params:
+#      kernel_size: 50
+#      threshold: 25
 #  -
 #    name: laplace_blur_validator
 #    params:

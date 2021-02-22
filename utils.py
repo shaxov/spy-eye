@@ -7,8 +7,8 @@ def orthogonal_projections(matrix, u, vh):
 
 
 def svd(image):
-    u, _, vh = np.linalg.svd(image, full_matrices=True)
-    return {'u': u, 'vh': vh}
+    u, s, vh = np.linalg.svd(image, full_matrices=True)
+    return {'u': u, 's': s, 'vh': vh}
 
 
 def crop(image, x, y, w, h):
@@ -96,5 +96,9 @@ def to_int_cords(face_box):
     return tuple([int(cord) for cord in face_box])
 
 
-def euc_dist(vec1, vec2):
-    return np.linalg.norm(vec1 - vec2)
+def euc_dist(vec1, vec2, p=2, weights=1):
+    return np.linalg.norm(weights*(vec1 - vec2), p)
+
+
+def cos_dist(vec1, vec2):
+    return np.dot(vec1, vec2)/(np.linalg.norm(vec1) * np.linalg.norm(vec2))
