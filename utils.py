@@ -1,3 +1,4 @@
+import dlib
 import numpy as np
 
 
@@ -12,6 +13,15 @@ def svd(image):
 
 def crop(image, x, y, w, h):
     return image[y:y + h, x:x + w]
+
+
+# def crop_dlib(image, x, y, w, h):
+#     left = x
+#     top = y
+#     right = x + w
+#     bottom = y + h
+#     rect = dlib.rectangle(left, top, right, bottom)
+#     return dlib.get_face_chip(image, rect)
 
 
 def _face_id_generator_func():
@@ -84,3 +94,7 @@ def match_box(face_box, face_boxes, threshold=0.3):
 
 def to_int_cords(face_box):
     return tuple([int(cord) for cord in face_box])
+
+
+def euc_dist(vec1, vec2):
+    return np.linalg.norm(vec1 - vec2)
