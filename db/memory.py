@@ -1,3 +1,5 @@
+import numpy as np
+import utils
 
 
 class MemoryDB:
@@ -20,7 +22,7 @@ class MemoryDB:
     def __contains__(self, face_id):
         return face_id in self._storage
 
-    def find_closest_embedding(self, face_embedding, dist_fun):
+    def find_closest_by_dlib_embedding(self, face_embedding, dist_fun):
         if self.is_empty():
             raise ValueError("Search is impossible. Storage is empty.")
 
@@ -33,3 +35,23 @@ class MemoryDB:
                 min_dist_face_id = face_id
         return min_dist_face_id, min_dist
 
+    def find_closest_by_svd_embedding(self, face_image):
+        if self.is_empty():
+            raise ValueError("Search is impossible. Storage is empty.")
+
+        min_dist = float('inf')
+        min_dist_face_id = -1
+        min_dlib_embedding = None
+        for face_id in self._storage:
+            dlib_embedding, usv_mats = self._storage[face_id]
+            svd_embedding = utils.orthogonal_projections(
+                face_image, usv_mats['u'], usv_mats['vh'])
+            dist = utils.euc_dist(svd_embedding, usv_mats['s'])
+            if dist < min_dist:
+                min_dist = dist
+                min_dist_face_id = face_id
+                min_dlib_embedding = dlib_embedding
+        return min_dist_face_id, min_dlib_embedding
+
+    def generate_face_id(self):
+        return str(len(self._storage) + 1)
