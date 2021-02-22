@@ -1,5 +1,21 @@
 source: "Face detection.mp4"
 source_scale: 0.8
+face_buffer_size: 15
+face_shape: [60, 60]
+
+database:
+  kind: memory
+
+face_encoder:
+  name: dlib_encoder
+  params:
+    path_to_cnn_model: face/files/dlib_face_recognition_resnet_model_v1.dat
+    path_to_landmark_model: face/files/shape_predictor_5_face_landmarks.dat
+
+face_recognizer:
+  name: dlib_recognizer
+  params:
+    threshold: 0.35
 
 face_detector:
 #  name: "hog_detector"
@@ -26,6 +42,15 @@ face_validators:
     name: same_detection_validator
     params:
       max_iou: 0.2
+  -
+    name: fft_blur_validator
+    params:
+      kernel_size: 30
+      threshold: 13
+#  -
+#    name: laplace_blur_validator
+#    params:
+#      threshold: 0.03
 
 frame_filters:
-  - name: gray_scale_filter
+  - name: fake_filter
